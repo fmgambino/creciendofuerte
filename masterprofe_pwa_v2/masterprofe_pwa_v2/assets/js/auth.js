@@ -1,0 +1,2 @@
+document.getElementById('loginForm').addEventListener('submit',async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.target));const r=await fetch('api/login.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json();if(j.ok){localStorage.setItem('installPromptPending','1');location='index.php'}else Swal.fire('Error',j.message||'Credenciales inválidas','error')});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js');
