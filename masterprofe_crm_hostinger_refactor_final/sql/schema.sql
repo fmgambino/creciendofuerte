@@ -8,9 +8,7 @@ CREATE TABLE users (
  full_name VARCHAR(150) NOT NULL,
  email VARCHAR(160) NOT NULL UNIQUE,
  password_hash VARCHAR(255) NOT NULL,
- role ENUM('superadmin','empleado','socio','referido') NOT NULL DEFAULT 'socio',
- phone VARCHAR(50) NULL,
- address VARCHAR(255) NULL,
+ role ENUM('superadmin','empleado','socio') NOT NULL DEFAULT 'socio',
  status ENUM('active','inactive') NOT NULL DEFAULT 'active',
  profile_photo VARCHAR(255) DEFAULT 'assets/img/avatar.svg',
  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -37,6 +35,8 @@ CREATE TABLE partners (
  full_name VARCHAR(150) NOT NULL,
  email VARCHAR(160) NOT NULL,
  phone VARCHAR(50) NULL,
+ address VARCHAR(180) NULL,
+ bank_account VARCHAR(180) NULL,
  capital_usd DECIMAL(12,2) NOT NULL DEFAULT 0,
  gains_usd DECIMAL(12,2) NOT NULL DEFAULT 0,
  kyc_status ENUM('pendiente','aprobado','rechazado') NOT NULL DEFAULT 'pendiente',
@@ -118,14 +118,14 @@ CREATE TABLE audit_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO users(full_name,email,password_hash,role,status,profile_photo) VALUES
-('Fernando Gambino','fernando.m.gambino@gmail.com','$2y$12$1..Lx40cIAF6y31H2f4isuaEXHIND7BRdDX3MEUHXcztqtPJjsqYi','superadmin','active','assets/img/avatar.svg'),
-('Mesa Operativa','mesa@masterprofe.demo','$2y$12$1..Lx40cIAF6y31H2f4isuaEXHIND7BRdDX3MEUHXcztqtPJjsqYi','empleado','active','assets/img/avatar.svg'),
-('Juan Pérez','juan@socio.demo','$2y$12$1..Lx40cIAF6y31H2f4isuaEXHIND7BRdDX3MEUHXcztqtPJjsqYi','socio','active','assets/img/avatar.svg');
+('Fernando Gambino','fernando.m.gambino@gmail.com','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','superadmin','active','assets/img/avatar.svg'),
+('Mesa Operativa','mesa@masterprofe.demo','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','empleado','active','assets/img/avatar.svg'),
+('Juan Pérez','juan@socio.demo','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','socio','active','assets/img/avatar.svg');
 
-INSERT INTO partners(user_id,partner_code,full_name,email,phone,capital_usd,gains_usd,kyc_status,status,joined_at) VALUES
-(3,'MSTR-JUAN-0001','Juan Pérez','juan@socio.demo','3815551111',8000,720,'aprobado','active','2026-01-01'),
-(NULL,'MSTR-MARI-0002','Marina Soto','marina@socio.demo','3815552222',10000,907,'aprobado','active','2026-02-02'),
-(NULL,'MSTR-DIEG-0003','Diego Vega','diego@socio.demo','3815553333',15000,1094,'pendiente','active','2026-03-03');
+INSERT INTO partners(user_id,partner_code,full_name,email,phone,address,bank_account,capital_usd,gains_usd,kyc_status,status,joined_at) VALUES
+(3,'MSTR-JUAN-0001','Juan Pérez','juan@socio.demo','3815551111','San Miguel de Tucumán','USDT TRC20 - Tw...9aFt',8000,720,'aprobado','active','2026-01-01'),
+(NULL,'MSTR-MARI-0002','Marina Soto','marina@socio.demo','3815552222','Tucumán','Banco Galicia ****4421',10000,907,'aprobado','active','2026-02-02'),
+(NULL,'MSTR-DIEG-0003','Diego Vega','diego@socio.demo','3815553333','Tucumán','USDT TRC20 - Tw...9aFt',15000,1094,'pendiente','active','2026-03-03');
 INSERT INTO broker_profits(profit_date,gross_profit_usd,master_share_usd,partners_share_usd,notes) VALUES
 (CURDATE(),2500,1500,1000,'Carga inicial demo');
 INSERT INTO distributions(broker_profit_id,partner_id,amount_usd,percent_share,status) VALUES
@@ -143,11 +143,12 @@ INSERT INTO notifications(title,body,type) VALUES
 ('Repartición acreditada','Se acreditaron distribuciones de la ganancia broker.','distribucion'),
 ('Nuevo referido','Juan Pérez registró un referido.','referido');
 
-INSERT INTO permissions(module_key,module_name,role,can_view)
-SELECT m.k,m.n,r.role, CASE WHEN r.role='superadmin' THEN 1 WHEN r.role='empleado' AND m.k NOT IN('users','roles','whatsapp') THEN 1 WHEN r.role='socio' AND m.k IN('dashboard','profile','socios','referidos','distribuciones','retiros','notificaciones') THEN 1 WHEN r.role='referido' AND m.k IN('dashboard','profile','referidos','notificaciones') THEN 1 ELSE 0 END
-FROM (SELECT 'dashboard' k,'Dashboard' n UNION SELECT 'users','Usuarios' UNION SELECT 'roles','Roles y permisos' UNION SELECT 'socios','Socios' UNION SELECT 'referidos','Referidos' UNION SELECT 'profits','Ganancias broker' UNION SELECT 'distribuciones','Distribuciones' UNION SELECT 'retiros','Retiros' UNION SELECT 'whatsapp','WhatsApp' UNION SELECT 'notificaciones','Notificaciones' UNION SELECT 'auditoria','Auditoría') m
-CROSS JOIN (SELECT 'superadmin' role UNION SELECT 'empleado' UNION SELECT 'socio' UNION SELECT 'referido') r;
-
-UPDATE permissions SET can_create=can_view, can_edit=can_view, can_delete=can_view, can_export=can_view;
-UPDATE permissions SET can_delete=0 WHERE role IN ('empleado','socio','referido');
-UPDATE permissions SET can_view=1, can_edit=1 WHERE module_key='profile';
+INSERT INTO permissions(module_key,module_name,role,can_view,can_create,can_edit,can_delete,can_export)
+SELECT m.k,m.n,r.role,
+ CASE WHEN r.role='superadmin' THEN 1 WHEN r.role='empleado' AND m.k NOT IN('users','roles','whatsapp') THEN 1 WHEN r.role='socio' AND m.k IN('dashboard','perfil','referidos','distribuciones','retiros','notificaciones') THEN 1 ELSE 0 END,
+ CASE WHEN r.role='superadmin' THEN 1 WHEN r.role='empleado' AND m.k IN('socios','referidos','profits','retiros','notificaciones') THEN 1 WHEN r.role='socio' AND m.k IN('referidos','retiros') THEN 1 ELSE 0 END,
+ CASE WHEN r.role='superadmin' THEN 1 WHEN r.role='empleado' AND m.k IN('socios','referidos','profits','retiros','notificaciones') THEN 1 WHEN r.role='socio' AND m.k IN('perfil','referidos') THEN 1 ELSE 0 END,
+ CASE WHEN r.role='superadmin' THEN 1 ELSE 0 END,
+ CASE WHEN r.role='superadmin' THEN 1 WHEN r.role='empleado' AND m.k NOT IN('roles','whatsapp') THEN 1 WHEN r.role='socio' AND m.k IN('referidos','distribuciones','retiros') THEN 1 ELSE 0 END
+FROM (SELECT 'dashboard' k,'Dashboard' n UNION SELECT 'perfil','Mi Perfil' UNION SELECT 'users','Usuarios' UNION SELECT 'roles','Roles y permisos' UNION SELECT 'socios','Socios' UNION SELECT 'referidos','Referidos' UNION SELECT 'profits','Ganancias broker' UNION SELECT 'distribuciones','Distribuciones' UNION SELECT 'retiros','Retiros' UNION SELECT 'whatsapp','WhatsApp' UNION SELECT 'notificaciones','Notificaciones' UNION SELECT 'auditoria','Auditoría') m
+CROSS JOIN (SELECT 'superadmin' role UNION SELECT 'empleado' UNION SELECT 'socio') r;
