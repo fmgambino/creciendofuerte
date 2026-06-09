@@ -35,8 +35,7 @@ if(($u['role']??'')==='socio' && $myPartnerId){
   $st=db()->prepare("SELECT COUNT(*) c FROM withdrawals WHERE partner_id=? AND status IN('solicitado','pendiente','en_revision','en_proceso')"); $st->execute([$myPartnerId]); $stats['pending_withdrawals']=$st->fetch()['c'];
 } else {
   $stats['partners']=$activePartners;
-  // Pedido del cliente: resetear la card de capital total aportado en Dashboard a cero.
-  $stats['capital']=0;
+  $stats['capital']=(float)db()->query('SELECT COALESCE(SUM(capital_usd),0) c FROM partners WHERE status="active"')->fetch()['c'];
   $stats['broker_total']=$brokerTotal;
   $stats['partners_pool']=$partnersPool;
   $stats['per_partner']=$perPartner;

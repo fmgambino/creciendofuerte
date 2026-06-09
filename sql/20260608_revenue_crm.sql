@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-06-2026 a las 18:28:44
+-- Tiempo de generación: 09-06-2026 a las 19:48:56
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -50,7 +50,14 @@ INSERT INTO `audit_logs` (`id`, `event`, `author`, `type`, `created_at`) VALUES
 (8, 'Guardó broker_profits', 'Fernando Gambino', 'crud', '2026-06-09 13:00:13'),
 (9, 'Guardó partners', 'Fernando Gambino', 'crud', '2026-06-09 13:00:51'),
 (10, 'Inicio de sesión', 'Fernando Gambino', 'auth', '2026-06-09 13:22:49'),
-(11, 'Guardó broker_profits', 'Fernando Gambino', 'crud', '2026-06-09 13:27:51');
+(11, 'Guardó broker_profits', 'Fernando Gambino', 'crud', '2026-06-09 13:27:51'),
+(12, 'Guardó partners', 'Fernando Gambino', 'crud', '2026-06-09 14:40:18'),
+(13, 'Eliminó distributions #3', 'Fernando Gambino', 'crud', '2026-06-09 14:41:37'),
+(14, 'Eliminó distributions #2', 'Fernando Gambino', 'crud', '2026-06-09 14:41:41'),
+(15, 'Eliminó distributions #1', 'Fernando Gambino', 'crud', '2026-06-09 14:41:46'),
+(16, 'Inicio de sesión', 'Fernando Gambino', 'auth', '2026-06-09 14:43:18'),
+(17, 'Guardó partners', 'Fernando Gambino', 'crud', '2026-06-09 14:45:29'),
+(18, 'Inicio de sesión', 'Juan Pérez', 'auth', '2026-06-09 14:45:40');
 
 -- --------------------------------------------------------
 
@@ -121,9 +128,6 @@ CREATE TABLE `distributions` (
 --
 
 INSERT INTO `distributions` (`id`, `broker_profit_id`, `partner_id`, `amount_usd`, `percent_share`, `status`, `created_at`) VALUES
-(1, 1, 1, 242.42, 24.2424, 'acreditado', '2026-06-09 10:35:57'),
-(2, 1, 2, 303.03, 30.3030, 'acreditado', '2026-06-09 10:35:57'),
-(3, 1, 3, 454.55, 45.4545, 'acreditado', '2026-06-09 10:35:57'),
 (4, 2, 1, 210.07, 33.3333, 'acreditado', '2026-06-09 13:27:51'),
 (5, 2, 2, 210.07, 33.3333, 'acreditado', '2026-06-09 13:27:51'),
 (6, 2, 3, 210.07, 33.3333, 'acreditado', '2026-06-09 13:27:51');
@@ -181,9 +185,9 @@ CREATE TABLE `partners` (
 --
 
 INSERT INTO `partners` (`id`, `user_id`, `partner_code`, `full_name`, `email`, `phone`, `address`, `bank_account`, `capital_usd`, `gains_usd`, `kyc_status`, `status`, `joined_at`, `created_at`) VALUES
-(1, 3, 'MSTR-JUAN-0001', 'Juan Pérez', 'juan@socio.demo', '3815551111', 'San Miguel de Tucumán', 'USDT TRC20 - Tw...9aFt', 8000.00, 930.07, 'aprobado', 'active', '2026-01-01', '2026-06-09 10:35:57'),
+(1, 3, 'MSTR-JUAN-0001', 'Juan Pérez', 'juan@socio.demo', '3815551111', 'San Miguel de Tucumán', 'USDT TRC20 - Tw...9aFt', 10000.00, 930.07, 'aprobado', 'active', '2026-01-01', '2026-06-09 10:35:57'),
 (2, NULL, 'MSTR-MARI-0002', 'Marina Soto', 'marina@socio.demo', '3815552222', 'Tucumán', 'Banco Galicia ****4421', 10000.00, 1117.07, 'aprobado', 'active', '2026-02-02', '2026-06-09 10:35:57'),
-(3, NULL, 'MSTR-DIEG-0003', 'Diego Vega', 'diego@socio.demo', '3815553333', 'Tucumán', 'USDT TRC20 - Tw...9aFt', 10000.00, 1304.07, 'pendiente', 'active', '2026-03-03', '2026-06-09 10:35:57');
+(3, NULL, 'MSTR-DIEG-0003', 'Diego Vega', 'diego@socio.demo', '3815553333', 'Tucumán', 'USDT TRC20 - Tw...9aFt', 10000.00, 1304.07, 'aprobado', 'active', '2026-03-03', '2026-06-09 10:35:57');
 
 -- --------------------------------------------------------
 
@@ -432,7 +436,7 @@ ALTER TABLE `withdrawals`
 -- AUTO_INCREMENT de la tabla `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `broker_profits`
