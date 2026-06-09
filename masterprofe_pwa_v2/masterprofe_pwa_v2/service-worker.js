@@ -1,1 +1,0 @@
-const CACHE='master-crm-v2';self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','login.php','index.php','assets/css/app.css','assets/js/app.js','assets/js/auth.js','manifest.json']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));

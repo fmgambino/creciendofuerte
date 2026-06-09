@@ -1,11 +1,14 @@
 <?php require_once 'helpers.php'; $u=need_login();
-if($_SERVER['REQUEST_METHOD']==='POST'){
- $name=clean($_POST['full_name']??''); $phone=clean($_POST['phone']??''); $address=clean($_POST['address']??''); $pass=trim($_POST['password']??'');
- if($pass!=='') db()->prepare('UPDATE users SET full_name=?,phone=?,address=?,password_hash=? WHERE id=?')->execute([$name,$phone,$address,password_hash($pass,PASSWORD_DEFAULT),$u['id']]);
- else db()->prepare('UPDATE users SET full_name=?,phone=?,address=? WHERE id=?')->execute([$name,$phone,$address,$u['id']]);
- audit('Actualizó perfil','perfil'); out(true,['message'=>'Perfil actualizado']);
+if($_SERVER['REQUEST_METHOD']==='GET'){
+ $st=db()->prepare('SELECT id,full_name,email,role,status,profile_photo,created_at FROM users WHERE id=?'); $st->execute([$u['id']]); $user=$st->fetch();
+ $st=db()->prepare('SELECT * FROM partners WHERE user_id=? OR email=? LIMIT 1'); $st->execute([$u['id'],$u['email']]); $partner=$st->fetch();
+ out(true,['user'=>$user,'partner'=>$partner]);
 }
-$me=db()->prepare('SELECT id,full_name,email,role,status,phone,address,profile_photo,created_at FROM users WHERE id=?'); $me->execute([$u['id']]);
-$partner=null; if($u['role']==='socio' || $u['role']==='referido'){ $q=db()->prepare('SELECT * FROM partners WHERE user_id=? OR email=? LIMIT 1'); $q->execute([$u['id'],$u['email']]); $partner=$q->fetch(); }
-out(true,['user'=>$me->fetch(),'partner'=>$partner]);
-?>
+$name=clean($_POST['full_name']??''); $email=clean($_POST['email']??''); $phone=clean($_POST['phone']??''); $address=clean($_POST['address']??''); $bank=clean($_POST['bank_account']??''); $pass=trim((string)($_POST['password']??''));
+try{
+ if($pass!=='') db()->prepare('UPDATE users SET full_name=?,email=?,password_hash=? WHERE id=?')->execute([$name,$email,password_hash($pass,PASSWORD_DEFAULT),$u['id']]);
+ else db()->prepare('UPDATE users SET full_name=?,email=? WHERE id=?')->execute([$name,$email,$u['id']]);
+ db()->prepare('UPDATE partners SET full_name=?,email=?,phone=?,address=?,bank_account=? WHERE user_id=? OR email=?')->execute([$name,$email,$phone,$address,$bank,$u['id'],$u['email']]);
+ $st=db()->prepare('SELECT id,full_name,email,role,status,profile_photo,created_at FROM users WHERE id=?'); $st->execute([$u['id']]); $_SESSION['user']=$st->fetch();
+ audit('Actualizó su perfil','profile'); out(true,['message'=>'Perfil actualizado']);
+}catch(Throwable $e){out(false,['message'=>$e->getMessage()],500);} ?>

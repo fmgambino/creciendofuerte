@@ -1,13 +1,29 @@
-<?php require_once 'helpers.php'; need_login();
-$data=json_decode(file_get_contents('php://input'),true); if(!is_array($data)) out(false,['message'=>'Datos inválidos'],400);
-$modules=[ 'dashboard'=>'Dashboard','profile'=>'Mi Perfil','users'=>'Usuarios','roles'=>'Roles y permisos','socios'=>'Socios','referidos'=>'Referidos','profits'=>'Ganancias broker','distribuciones'=>'Distribuciones','retiros'=>'Retiros','whatsapp'=>'WhatsApp','notificaciones'=>'Notificaciones','auditoria'=>'Auditoría'];
-$roles=['superadmin','empleado','socio','referido'];
-$pdo=db(); $pdo->beginTransaction();
-try{
- foreach($data as $p){
-  $m=$p['module_key']??''; $r=$p['role']??''; if(!isset($modules[$m])||!in_array($r,$roles,true)) continue;
-  $vals=[(int)!empty($p['can_view']),(int)!empty($p['can_create']),(int)!empty($p['can_edit']),(int)!empty($p['can_delete']),(int)!empty($p['can_export'])];
-  $pdo->prepare('INSERT INTO permissions(module_key,module_name,role,can_view,can_create,can_edit,can_delete,can_export) VALUES(?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE can_view=VALUES(can_view),can_create=VALUES(can_create),can_edit=VALUES(can_edit),can_delete=VALUES(can_delete),can_export=VALUES(can_export)')->execute([$m,$modules[$m],$r,...$vals]);
- }
- $pdo->commit(); audit('Actualizó roles y permisos','permisos'); out(true,['message'=>'Permisos guardados']);
-}catch(Throwable $e){$pdo->rollBack(); out(false,['message'=>$e->getMessage()],500);}?>
+<?php
+require_once 'helpers.php';
+$u=need_login();
+if (($u['role'] ?? '') !== 'superadmin') out(false, ['message'=>'Solo SuperAdmin puede guardar permisos.'], 403);
+try {
+    $raw = file_get_contents('php://input');
+    $data = json_decode($raw, true);
+    if (!is_array($data)) out(false, ['message' => 'Payload inválido para permisos.'], 400);
+    $pdo = db();
+    $pdo->beginTransaction();
+    $exists = $pdo->prepare('SELECT id FROM permissions WHERE module_key=? AND role=? LIMIT 1');
+    $upd = $pdo->prepare('UPDATE permissions SET module_name=?, can_view=?, can_create=?, can_edit=?, can_delete=?, can_export=? WHERE module_key=? AND role=?');
+    $ins = $pdo->prepare('INSERT INTO permissions(module_key,module_name,role,can_view,can_create,can_edit,can_delete,can_export) VALUES(?,?,?,?,?,?,?,?)');
+    foreach ($data as $p) {
+        if (empty($p['module_key']) || empty($p['role'])) continue;
+        $module_key=(string)$p['module_key']; $role=(string)$p['role']; $module_name=(string)($p['module_name'] ?? $module_key);
+        $vals=[!empty($p['can_view'])?1:0,!empty($p['can_create'])?1:0,!empty($p['can_edit'])?1:0,!empty($p['can_delete'])?1:0,!empty($p['can_export'])?1:0];
+        $exists->execute([$module_key,$role]);
+        if($exists->fetchColumn()) $upd->execute([$module_name,...$vals,$module_key,$role]);
+        else $ins->execute([$module_key,$module_name,$role,...$vals]);
+    }
+    $pdo->commit();
+    audit('Actualizó roles y permisos','security');
+    out(true, ['message'=>'Permisos guardados']);
+} catch (Throwable $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    out(false, ['message'=>'Error al guardar permisos: '.$e->getMessage()], 500);
+}
+?>

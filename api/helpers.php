@@ -2,6 +2,8 @@
 session_start();
 require_once __DIR__.'/../config/database.php';
 header('Content-Type: application/json; charset=utf-8');
+ini_set('display_errors','0');
+error_reporting(E_ALL);
 function out($ok, $data=[], $code=200){ http_response_code($code); echo json_encode(['ok'=>$ok]+$data, JSON_UNESCAPED_UNICODE); exit; }
 function need_login(){ if(empty($_SESSION['user'])) out(false,['message'=>'No autorizado'],401); return $_SESSION['user']; }
 function clean($v){ return trim((string)$v); }
