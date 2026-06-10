@@ -132,15 +132,17 @@ CREATE TABLE audit_logs (
 INSERT INTO users(full_name,email,password_hash,role,status,profile_photo) VALUES
 ('Fernando Gambino','fernando.m.gambino@gmail.com','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','superadmin','active','assets/img/avatar.svg'),
 ('Mesa Operativa','mesa@masterprofe.demo','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','empleado','active','assets/img/avatar.svg'),
-('Juan Pérez','juan@socio.demo','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','socio','active','assets/img/avatar.svg');
+('Juan Pérez','juan@socio.demo','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','socio','active','assets/img/avatar.svg'),
+('Marina Soto','marina@socio.demo','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','socio','active','assets/img/avatar.svg'),
+('Diego Vega','diego@socio.demo','$2y$12$NfLavdL2uvgiqPdr9i7Y8OIg.RuG/kws.OW4QnsaK51.QZVWda7re','socio','active','assets/img/avatar.svg');
 
 INSERT INTO capital_levels(name,amount_usd,percent_share,status) VALUES
 ('Nivel 2K',2000,0,'active'),('Nivel 5K',5000,0,'active'),('Nivel 10K',10000,0,'active');
 
 INSERT INTO partners(user_id,partner_code,full_name,email,phone,address,bank_account,capital_usd,gains_usd,kyc_status,status,joined_at) VALUES
 (3,'MSTR-JUAN-0001','Juan Pérez','juan@socio.demo','3815551111','San Miguel de Tucumán','USDT TRC20 - Tw...9aFt',8000,720,'aprobado','active','2026-01-01'),
-(NULL,'MSTR-MARI-0002','Marina Soto','marina@socio.demo','3815552222','Tucumán','Banco Galicia ****4421',10000,907,'aprobado','active','2026-02-02'),
-(NULL,'MSTR-DIEG-0003','Diego Vega','diego@socio.demo','3815553333','Tucumán','USDT TRC20 - Tw...9aFt',15000,1094,'pendiente','active','2026-03-03');
+(4,'MSTR-MARI-0002','Marina Soto','marina@socio.demo','3815552222','Tucumán','Banco Galicia ****4421',10000,907,'aprobado','active','2026-02-02'),
+(5,'MSTR-DIEG-0003','Diego Vega','diego@socio.demo','3815553333','Tucumán','USDT TRC20 - Tw...9aFt',15000,1094,'pendiente','active','2026-03-03');
 
 INSERT INTO broker_profits(profit_date,gross_profit_usd,master_share_usd,partners_share_usd,notes) VALUES
 (CURDATE() - INTERVAL 5 DAY,1850,1110,740,'Demo'),(CURDATE() - INTERVAL 4 DAY,2200,1320,880,'Demo'),(CURDATE() - INTERVAL 3 DAY,2500,1500,1000,'Demo'),(CURDATE() - INTERVAL 2 DAY,1900,1140,760,'Demo'),(CURDATE() - INTERVAL 1 DAY,3100,1860,1240,'Demo'),(CURDATE(),10000,6000,4000,'Carga inicial demo');

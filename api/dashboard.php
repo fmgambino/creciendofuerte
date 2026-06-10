@@ -21,6 +21,8 @@ $activePartners=(int)db()->query('SELECT COUNT(*) c FROM partners WHERE status="
 $totalBrokerSql='SELECT COALESCE(SUM(bp.gross_profit_usd),0) c FROM broker_profits bp '.$w;
 $st=db()->prepare($totalBrokerSql); $st->execute($params); $brokerTotal=(float)$st->fetch()['c'];
 $partnersPool=round($brokerTotal*0.40,2);
+$stPaid=db()->prepare("SELECT COALESCE(SUM(w.amount_usd),0) c FROM withdrawals w WHERE w.status='pagado'"); $stPaid->execute(); $paidWithdrawals=(float)$stPaid->fetch()['c'];
+$partnersAvailable=max(0, round($partnersPool-$paidWithdrawals,2));
 $perPartner=$activePartners>0 ? round($partnersPool/$activePartners,2) : 0;
 
 $stats=[];
@@ -30,6 +32,8 @@ if(($u['role']??'')==='socio' && $myPartnerId){
   $stats['broker_total']=$brokerTotal;
   $stats['partners_pool']=$partnersPool;
   $stats['per_partner']=$perPartner;
+  $stats['partners_available']=$partnersAvailable;
+  $stats['paid_withdrawals']=$paidWithdrawals;
   $stats['gains']=$row['gains'];
   $stats['partners']=1;
   $st=db()->prepare("SELECT COUNT(*) c FROM withdrawals WHERE partner_id=? AND status IN('solicitado','pendiente','en_revision','en_proceso')"); $st->execute([$myPartnerId]); $stats['pending_withdrawals']=$st->fetch()['c'];
@@ -39,6 +43,8 @@ if(($u['role']??'')==='socio' && $myPartnerId){
   $stats['broker_total']=$brokerTotal;
   $stats['partners_pool']=$partnersPool;
   $stats['per_partner']=$perPartner;
+  $stats['partners_available']=$partnersAvailable;
+  $stats['paid_withdrawals']=$paidWithdrawals;
   $stats['gains']=$perPartner;
   $stats['pending_withdrawals']=db()->query("SELECT COUNT(*) c FROM withdrawals WHERE status IN('solicitado','pendiente','en_revision','en_proceso')")->fetch()['c'];
 }
