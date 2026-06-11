@@ -36,11 +36,35 @@ const schemas={
 };
 async function init(){ bindHeader(); const b=await fetch('api/bootstrap.php',{credentials:'same-origin'}).then(r=>r.json()).catch(()=>({ok:false})); if(!b.ok){location.replace('./login.php');return} Object.assign(state,{modules:b.modules,perms:b.permissions,notifications:b.notifications,user:b.user}); renderMenu(); const cleanView=document.body.dataset.view||''; const hash=location.hash.replace('#',''); const path=location.pathname.split('/').pop().replace('.php','')||''; route(hash||cleanView||path||'dashboard', false); }
 function perm(module,act='can_view',role=state.user.role){ const p=state.perms.find(x=>x.module_key===module&&x.role===role); return state.user.role==='superadmin' || (p && +p[act]); }
-function renderMenu(){ const html=state.modules.filter(m=>perm(m.key,'can_view')).map(m=>`<div class="navitem" data-route="${m.key}">${ICON[m.key]||ICON.dashboard}<span>${m.name}</span></div>`).join(''); $('#menu').innerHTML=html; $$('#menu .navitem').forEach(i=>i.onclick=()=>route(i.dataset.route)); }
+function renderMenu(){ const html=state.modules.filter(m=>perm(m.key,'can_view')).map(m=>`<div class="navitem" data-route="${m.key}">${ICON[m.key]||ICON.dashboard}<span>${m.name}</span></div>`).join(''); $('#menu').innerHTML=html; $$('#menu .navitem').forEach(i=>i.onclick=()=>route(i.dataset.route)); renderBottomNav(); }
+
+function renderBottomNav(){
+ const bn=$('#bottomNav'); if(!bn) return;
+ const allowed=state.modules.filter(m=>perm(m.key,'can_view'));
+ const preferred=['dashboard','perfil','socios','referidos','retiros','distribuciones','profits','notificaciones'];
+ let primary=[];
+ for(const key of preferred){ const m=allowed.find(x=>x.key===key); if(m && !primary.find(x=>x.key===key)) primary.push(m); if(primary.length>=4) break; }
+ for(const m of allowed){ if(primary.length>=4) break; if(!primary.find(x=>x.key===m.key)) primary.push(m); }
+ const rest=allowed.filter(m=>!primary.find(x=>x.key===m.key));
+ bn.innerHTML = primary.map(m=>`<button class="bottom-item" data-route="${m.key}" title="${m.name}">${ICON[m.key]||ICON.dashboard}<span>${m.name}</span></button>`).join('') + `<button class="bottom-item more" id="moreBtn" title="Más">${svg('<path d="M4 6h16M4 12h16M4 18h16"/>')}<span>Más</span></button>`;
+ $$('#bottomNav .bottom-item[data-route]').forEach(b=>b.onclick=()=>route(b.dataset.route));
+ const moreBtn=$('#moreBtn'); if(moreBtn) moreBtn.onclick=()=>openMoreSheet(rest.length?rest:allowed);
+ $$('.bottom-item').forEach(i=>i.classList.toggle('active',i.dataset.route===state.current));
+}
+function openMoreSheet(items){
+ const sheet=$('#moreSheet'), links=$('#moreLinks'); if(!sheet||!links)return;
+ links.className='more-links';
+ links.innerHTML=items.map(m=>`<button class="more-link" data-route="${m.key}">${ICON[m.key]||ICON.dashboard}<span>${m.name}</span></button>`).join('');
+ sheet.classList.remove('hidden');
+ $$('#moreLinks .more-link').forEach(b=>b.onclick=()=>{sheet.classList.add('hidden');route(b.dataset.route)});
+ const close=$('#closeMore'); if(close) close.onclick=()=>sheet.classList.add('hidden');
+ sheet.onclick=e=>{if(e.target===sheet)sheet.classList.add('hidden')};
+}
+
 function bindHeader(){ $('#collapseBtn').onclick=()=>$('#sidebar').classList.toggle(innerWidth<900?'open':'collapsed'); $('#themeBtn').onclick=()=>{document.documentElement.classList.toggle('light'); localStorage.theme=document.documentElement.classList.contains('light')?'light':'dark'; updateThemeIcon(); redrawChart();}; if(localStorage.theme==='light')document.documentElement.classList.add('light'); updateThemeIcon(); $('#fullBtn').innerHTML=ICON.full; $('#fullBtn').onclick=()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen(); $('#notifBtn').innerHTML=ICON.notificaciones; $('#logoutBtn').onclick=async()=>{try{await fetch('api/logout.php',{credentials:'same-origin',redirect:'follow'});}catch(e){} const local=['localhost','127.0.0.1'].includes(location.hostname); location.replace(local?'./login.php':'./login');}; $('#photoInput').onchange=uploadPhoto; $('#installBtn').onclick=()=>deferredPrompt&&deferredPrompt.prompt(); $('#waFloat').onclick=showWhatsApp; window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')}); }
 let deferredPrompt=null,lastTrend=[];function updateThemeIcon(){ $('#themeBtn').innerHTML=document.documentElement.classList.contains('light')?ICON.moon:ICON.sun; }
 function renderNotifs(){ let unread=state.notifications.filter(n=>!+n.is_read).length; $('#notifBtn').dataset.count=unread; $('#notifPreview').innerHTML=state.notifications.map(n=>`<div class="notif-item"><b>${n.title}</b><small>${n.created_at}</small><p>${n.body}</p></div>`).join('')||'<div class="notif-item">Sin notificaciones</div>'; }
-async function route(r, push=true){ const aliases={'usuarios':'users','ganancias-broker':'profits','niveles-capital':'capitales'}; r=aliases[r]||r||'dashboard'; if(!perm(r,'can_view')) r='dashboard'; state.current=r; if(push){ const local=['localhost','127.0.0.1'].includes(location.hostname); if(local) history.replaceState(null,'','./index.php?view='+r); else history.pushState(null,'','./'+r); } $('#pageTitle').textContent=titles[r]||r; $$('.navitem').forEach(i=>i.classList.toggle('active',i.dataset.route===r)); renderNotifs(); if(r==='dashboard') return dashboard(); if(r==='perfil') return profile(); if(r==='roles') return roles(); return tablePage(r); }
+async function route(r, push=true){ const aliases={'usuarios':'users','ganancias-broker':'profits','niveles-capital':'capitales'}; r=aliases[r]||r||'dashboard'; if(!perm(r,'can_view')) r='dashboard'; state.current=r; if(push){ const local=['localhost','127.0.0.1'].includes(location.hostname); if(local) history.replaceState(null,'','./index.php?view='+r); else history.pushState(null,'','./'+r); } $('#pageTitle').textContent=titles[r]||r; const dpt=$('#desktopPageTitle'); if(dpt)dpt.textContent=titles[r]||r; $$('.navitem').forEach(i=>i.classList.toggle('active',i.dataset.route===r)); $$('.bottom-item').forEach(i=>i.classList.toggle('active',i.dataset.route===r)); renderNotifs(); if(r==='dashboard') return dashboard(); if(r==='perfil') return profile(); if(r==='roles') return roles(); return tablePage(r); }
 async function dashboard(){
  const today=new Date().toISOString().slice(0,10); const from=new Date(Date.now()-1000*60*60*24*30).toISOString().slice(0,10);
  const options=await fetch('api/form_options.php').then(r=>r.json()).catch(()=>({partners:[]}));
