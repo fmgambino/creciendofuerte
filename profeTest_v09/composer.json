@@ -1,0 +1,10 @@
+{
+  "name": "electronica-gambino/el-master-profe-crm",
+  "description": "CRM de socios inversores, ganancias broker, distribuciones y retiros.",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "phpmailer/phpmailer": "^6.9",
+    "google/apiclient": "^2.15"
+  }
+}

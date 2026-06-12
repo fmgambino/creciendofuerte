@@ -1,0 +1,3 @@
+EL MASTER PROFE CRM - V07 LOGIN BACKGROUND FIX
+Fecha: 2026-06-11
+Corrección: soporte real para YouTube embed, video directo e imagen adjunta/URL con modo exclusivo.
